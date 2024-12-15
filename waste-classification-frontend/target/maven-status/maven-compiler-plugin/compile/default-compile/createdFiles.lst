@@ -1,0 +1,5 @@
+com\example\wasteclassification\AppConfig.class
+com\example\wasteclassification\controller\WasteController$WasteResponse.class
+com\example\wasteclassification\model\Waste.class
+com\example\wasteclassification\WasteClassificationApplication.class
+com\example\wasteclassification\controller\WasteController.class
