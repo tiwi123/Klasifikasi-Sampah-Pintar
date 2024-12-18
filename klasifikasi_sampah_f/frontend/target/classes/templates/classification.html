@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klasifikasi Sampah</title>
+    <style>
+        /* Mengatur gaya umum untuk halaman */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7fa;
+            color: #333;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        main {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .classification {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .classification h2 {
+            font-size: 24px;
+            color: #4CAF50;
+        }
+
+        .classification form {
+            margin: 20px 0;
+        }
+
+        .classification input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: #f9f9f9;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        #loading {
+            display: none;
+            margin-top: 20px;
+            color: #4CAF50;
+        }
+
+        .result {
+            margin-top: 30px;
+            font-size: 18px;
+        }
+
+        .result h3 {
+            font-size: 22px;
+            color: #333;
+        }
+
+        .result p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        /* Responsivitas pada layar kecil */
+        @media (max-width: 600px) {
+            .classification {
+                padding: 20px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Klasifikasi Sampah</h1>
+    </header>
+    <main>
+        <section class="classification">
+            <h2>Unggah Gambar Sampah</h2>
+            <!-- Form untuk mengunggah gambar -->
+            <form id="uploadForm" action="http://192.168.100.23:5000/classify" method="POST" enctype="multipart/form-data">
+                <input type="file" id="image" name="image" accept="image/*" required>
+                <button type="submit" class="btn">Klasifikasi</button>
+            </form>
+            
+            <!-- Feedback visual saat memproses -->
+            <div id="loading" style="display: none;">
+                <p>Sedang memproses gambar...</p>
+            </div>
+
+            <div class="result">
+                <h3>Hasil Klasifikasi:</h3>
+                <p id="resultText">Unggah gambar untuk melihat hasil...</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const resultText = document.getElementById('resultText');
+        const loading = document.getElementById('loading');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();  // Mencegah form agar tidak melakukan refresh halaman
+
+            // Menampilkan loading indicator
+            loading.style.display = 'block';
+            resultText.innerHTML = '';
+
+            const formData = new FormData();
+            formData.append("image", document.getElementById("image").files[0]);
+
+            // Mengirim permintaan POST ke server Flask untuk klasifikasi
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                loading.style.display = 'none';  // Sembunyikan loading indicator
+                if (!response.ok) {
+                    throw new Error(`Server response: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Menampilkan hasil klasifikasi
+                if (data.error) {
+                    resultText.innerHTML = `Error: ${data.error}`; // Menampilkan error jika ada
+                } else {
+                    resultText.innerHTML = `Klasifikasi: ${data.class}, Kepercayaan: ${data.confidence}%`; // Menampilkan hasil klasifikasi
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultText.innerHTML = "Terjadi kesalahan saat memproses gambar."; // Menangani error
+                loading.style.display = 'none';  // Sembunyikan loading indicator
+            });
+        });
+    </script>
+</body>
+</html>
